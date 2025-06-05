@@ -6,11 +6,11 @@ import threading
 
 CONSOLE_PREFIX = "Sensor: "
 
-from lib.pinmap import TRIG_1, ECHO_1
-from lib.pinmap import TRIG_2, ECHO_2
-from lib.pinmap import TRIG_3, ECHO_3
-from lib.pinmap import TRIG_4, ECHO_4
-from lib.pinmap import TRIG_5, ECHO_5
+from pinmap import TRIG_1, ECHO_1
+from pinmap import TRIG_2, ECHO_2
+from pinmap import TRIG_3, ECHO_3
+from pinmap import TRIG_4, ECHO_4
+from pinmap import TRIG_5, ECHO_5
 
 trig_pins = []
 trig_pins.append(TRIG_1)
