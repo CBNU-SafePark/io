@@ -1,5 +1,6 @@
 # io_server.py
 
+import threading
 # FastAPI import
 from fastapi import FastAPI, HTTPException
 
@@ -15,12 +16,13 @@ from portmap import IO_SERVER_PORT
 app = FastAPI()
 
 # 센서 ---------------------------------------
-# 센서 거리 저장
+# 거리 센서
 distance_data = {i: -1 for i in range(sensor.SENSOR_COUNT)}
+distance_data_lock = threading.Lock() # 동시 접근하기 때문에 락 걸어줘야 함
 threshold_distance = 30  # 예시 거리 임계값
 
 # 센서에서 감지될 때 켤 LED 맵
-sensor_led_map = [
+sensor_led_on_map = [
     [0],  # 센서 0에 대응하는 LED
     [1],  # 센서 1에 대응하는 LED
     [2],  # 센서 2에 대응하는 LED
@@ -29,23 +31,44 @@ sensor_led_map = [
     [5],  # 센서 5에 대응하는 LED
 ]
 
+sensor_led_off_map = [
+    [],  # 센서 0에 대응하는 LED
+    [],  # 센서 1에 대응하는 LED
+    [],  # 센서 1에 대응하는 LED
+    [],  # 센서 1에 대응하는 LED
+    [],  # 센서 1에 대응하는 LED
+    [],  # 센서 1에 대응하는 LED
+]
+
+
 # 센서 거리 측정 시 호출 될 콜백 함수
-def sensor_callback(sensor_index, distance):
-    distance_data[sensor_index] = distance
+def distance_callback(sensor_index, distance):
+    # 값 업데이트
+    with distance_data_lock:
+        distance_data[sensor_index] = distance
 
     # 거리 임계값에 따라 LED 상태 변경
     if distance < threshold_distance:
-        # 해당 센서에 대응하는 LED를 켭니다.
-        for led_index in sensor_led_map[sensor_index]:
+        # 해당 센서에 대응하는 LED를 켜고 끕니다.
+        for led_index in sensor_led_on_map[sensor_index]:
             actuator_server.turn_on_led(led_index)
-    else:
-        # 해당 센서에 대응하는 LED를 끕니다.
-        for led_index in sensor_led_map[sensor_index]:
+        for led_index in sensor_led_off_map[sensor_index]:
             actuator_server.turn_off_led(led_index)
+    else:
+        # 해당 센서에 대응하는 LED를 켜고 끕니다.
+        for led_index in sensor_led_off_map[sensor_index]:
+            actuator_server.turn_off_led(led_index)
+        for led_index in sensor_led_off_map[sensor_index]:
+            actuator_server.turn_on_led(led_index)
 
+# 스레드
+def distance_thread_func():
+    sensor.measure_distance(0.01, distance_callback)
 
+distance_thread = threading.Thread(target=distance_thread_func)
+distance_thread.start()
 
-# 센서 거리 측정 엔드포인트
+# 거리 측정 센서 엔드포인트
 @app.get("/sensor/{sensor_index}/distance")
 def get_sensor_distance(sensor_index: int):
     """
