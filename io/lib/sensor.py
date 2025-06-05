@@ -66,8 +66,8 @@ def measure_distance(trig_pin, echo_pin):
     distance = round(distance, 2)
     return distance
 
-# 측정 돌리는 루프, interval(초)에 한번씩 해당 센서의 거리를 측정
-# callback(pin)
+# 측정 돌리는 루프, interval(초)에 한번씩 돌아가면서 거리 센서의 거리를 측정
+# callback(pinindex, distance)
 def measure_thread(interval, callback):
     while True:
         
