@@ -25,3 +25,6 @@ ECHO_4 = 21
 
 TRIG_5 = 23
 ECHO_5 = 24
+
+# DH22 (온습도)
+DHT_PIN = 4

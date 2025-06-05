@@ -2,7 +2,6 @@
 
 import RPi.GPIO as GPIO
 import time
-import threading
 
 CONSOLE_PREFIX = "Sensor: "
 
@@ -84,13 +83,40 @@ def measure_thread(interval, callback):
 
             time.sleep(interval)
 
+
+# DHT22 온습도 센서
+import Adafruit_DHT
+
+# 센서 타입
+sensor = Adafruit_DHT.DHT22
+from pinmap import DHT_PIN
+
+# callback(humidity, tempreture)
+def measure_dht(interval, callback):
+    while True:
+        humidity, temperature = Adafruit_DHT.read_retry(sensor, DHT_PIN)
+        if humidity is not None and temperature is not None:
+            callback(humidity, temperature)
+        else:
+            callback(-1, -1)
+        
+        time.sleep(interval)
+
+# TODO 불꽃 센서 
+
+# TODO GAS 센서
+
 # 테스트 실시
 if __name__ == "__main__":
     test_index_pin = 0 # 테스트하려면 이 부분 수정
-    interval = 0.5
 
     # 콜백 구현, (단순히 거리 측정)
-    def callback(pin_index, distance):
-        print(f"{CONSOLE_PREFIX}{pin_index}에서 측정된 거리 : {distance}")
+    def distance_callback(pin_index, distance):
+        print(f"{CONSOLE_PREFIX}{pin_index}'s distance : {distance}")
 
-    measure_thread(interval, callback)
+    measure_thread(0.5, distance_callback)
+
+    def dht_callback(humidity, tempreture):
+        print(f"humidity : {humidity}  tempreture : {tempreture}")
+
+    measure_dht(1,dht_callback)
